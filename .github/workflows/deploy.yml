@@ -23,8 +23,8 @@ jobs:
   testes:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
         with:
           node-version: 22
           cache: npm
@@ -38,10 +38,20 @@ jobs:
       name: producao
       url: https://habbo-agents.azurewebsites.net
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
+
+      # sem isso o azure/login falha com "Not all values are present", que nao
+      # diz o que fazer
+      - name: Conferir os identificadores do Azure
+        run: |
+          if [ -z "${{ secrets.AZURE_CLIENT_ID }}" ] || [ -z "${{ secrets.AZURE_TENANT_ID }}" ] || [ -z "${{ secrets.AZURE_SUBSCRIPTION_ID }}" ]; then
+            echo "::error::Faltam secrets do Azure. Em Settings > Secrets and variables > Actions, crie AZURE_CLIENT_ID, AZURE_TENANT_ID e AZURE_SUBSCRIPTION_ID (os valores estao na secao Deploy do README)."
+            exit 1
+          fi
+          echo "identificadores presentes"
 
       - name: Login no Azure (OIDC)
-        uses: azure/login@v2
+        uses: azure/login@v3
         with:
           client-id: ${{ secrets.AZURE_CLIENT_ID }}
           tenant-id: ${{ secrets.AZURE_TENANT_ID }}
