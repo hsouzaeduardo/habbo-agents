@@ -1,0 +1,70 @@
+/* Avatar em pixel art: respiracao constante, bracos digitando quando ha atividade. */
+
+.avatar,
+.desk,
+.chair,
+.plant {
+  display: block;
+  image-rendering: pixelated;
+}
+
+/* respiracao: meia unidade do SVG (2px na tela) alternando em 2 frames */
+.av-bob { animation: bob 1.8s steps(2) infinite; }
+
+.station:nth-child(2n) .av-bob { animation-delay: .4s; }
+.station:nth-child(3n) .av-bob { animation-delay: .9s; }
+
+@keyframes bob {
+  0%, 49.9% { transform: translateY(0); }
+  50%, 100% { transform: translateY(.5px); }
+}
+
+/* Os bracos sao <g> separados justamente para poderem se mexer sozinhos.
+   O translate base repete o atributo do SVG porque o transform do CSS o substitui. */
+.av-arm-l { transform: translate(0px, 16px); }
+.av-arm-r { transform: translate(13px, 16px); }
+
+.station.is-busy .av-arm-l { animation: type-l .34s steps(2) infinite; }
+.station.is-busy .av-arm-r { animation: type-r .34s steps(2) infinite .17s; }
+
+@keyframes type-l {
+  0%, 49% { transform: translate(0px, 16px); }
+  50%, 100% { transform: translate(0px, 17px); }
+}
+
+@keyframes type-r {
+  0%, 49% { transform: translate(13px, 16px); }
+  50%, 100% { transform: translate(13px, 17px); }
+}
+
+/* pulinho no instante em que chega uma atividade nova */
+.station.is-pop .avatar { animation: pop .45s ease-out; }
+
+@keyframes pop {
+  0%   { transform: translateY(0); }
+  35%  { transform: translateY(-7px); }
+  60%  { transform: translateY(0); }
+  75%  { transform: translateY(-2px); }
+  100% { transform: translateY(0); }
+}
+
+/* monitor: apagado quando ocioso, aceso e "digitando" quando ha atividade */
+.screen-bg { fill: #1d2430; transition: fill .3s; }
+.screen-line { fill: #3f5f80; transition: fill .3s; }
+
+.station.is-busy .screen-bg { fill: #22405e; }
+.station.is-busy .screen-line { fill: #8fd0ff; }
+.station.is-busy .l1 { animation: blip .9s steps(2) infinite; }
+.station.is-busy .l2 { animation: blip .9s steps(2) infinite .3s; }
+.station.is-busy .l3 { animation: blip .9s steps(2) infinite .6s; }
+
+@keyframes blip { 50% { opacity: .35; } }
+
+@media (prefers-reduced-motion: reduce) {
+  .av-bob,
+  .station.is-busy .av-arm-l,
+  .station.is-busy .av-arm-r,
+  .station.is-pop .avatar,
+  .station.is-busy .screen-line,
+  .window .cloud { animation: none; }
+}

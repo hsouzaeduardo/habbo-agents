@@ -1,0 +1,99 @@
+/* Balao de fala pixelado que aparece acima da cabeca do agente. */
+
+.bubble {
+  position: absolute;
+  left: 0;
+  bottom: 114px;
+  transform: translateX(-50%);
+  transform-origin: 50% 100%;
+  z-index: 40;
+
+  /* a estacao tem largura 0, entao o balao precisa de max-content: sem isso o
+     shrink-to-fit resolve para a largura minima e quebra palavra no meio */
+  width: max-content;
+  min-width: 96px;
+  max-width: 210px;
+  padding: 6px 9px 8px;
+
+  background: #fffdf5;
+  border: 3px solid var(--ink);
+  box-shadow: 0 4px 0 #00000033, 0 0 0 2px #ffffff inset;
+
+  font-family: var(--pixel-font);
+  font-size: 12px;
+  line-height: 1.35;
+  color: #2a2a38;
+  text-align: center;
+  word-break: break-word;
+  hyphens: auto;
+
+  animation: bubble-in .28s cubic-bezier(.2, 1.5, .4, 1);
+}
+
+/* rabicho: triangulo escuro por fora, claro por dentro */
+.bubble::after,
+.bubble::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  width: 0;
+  height: 0;
+  border-left: 8px solid transparent;
+  border-right: 8px solid transparent;
+}
+
+.bubble::after {
+  bottom: -13px;
+  margin-left: -8px;
+  border-top: 11px solid var(--ink);
+}
+
+.bubble::before {
+  bottom: -8px;
+  margin-left: -8px;
+  border-top: 11px solid #fffdf5;
+  z-index: 1;
+}
+
+.bubble .who {
+  display: block;
+  font-size: 10px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: #2f6f5e;
+  margin-bottom: 2px;
+}
+
+.bubble .what {
+  display: block;
+}
+
+/* barrinha do tempo restante: a largura e animada por transition, definida no JS */
+.bubble .life {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  height: 3px;
+  width: 100%;
+  background: #2f6f5e;
+  opacity: .55;
+}
+
+.bubble.is-leaving {
+  animation: bubble-out .22s ease-in forwards;
+}
+
+@keyframes bubble-in {
+  from { opacity: 0; transform: translateX(-50%) translateY(6px) scale(.7); }
+  to   { opacity: 1; transform: translateX(-50%) translateY(0) scale(1); }
+}
+
+@keyframes bubble-out {
+  to { opacity: 0; transform: translateX(-50%) translateY(-8px) scale(.9); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bubble { animation: none; }
+  .bubble.is-leaving { animation: none; opacity: 0; }
+  .bubble .life { transition: none !important; }
+}

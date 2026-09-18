@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Habbo Office — agentes ao vivo</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><rect width='16' height='16' fill='%232f2f3f'/><rect x='4' y='3' width='8' height='7' fill='%23f0c8a0'/><rect x='5' y='5' width='2' height='2' fill='%232f2f3f'/><rect x='9' y='5' width='2' height='2' fill='%232f2f3f'/><rect x='4' y='10' width='8' height='5' fill='%233a86ff'/></svg>">
+<link rel="stylesheet" href="/css/room.css">
+<link rel="stylesheet" href="/css/avatar.css">
+<link rel="stylesheet" href="/css/bubble.css">
+</head>
+<body>
+
+<header class="topbar">
+  <h1>Habbo&nbsp;Office</h1>
+  <span class="subtitle">o que os agentes estão fazendo agora</span>
+  <div class="status" id="status" data-state="conectando">
+    <span class="dot"></span><span class="status-text">conectando…</span>
+  </div>
+</header>
+
+<main class="viewport" id="viewport">
+  <div class="stage" id="stage">
+
+    <div class="wall parallax">
+      <div class="window">
+        <div class="sky parallax"><i class="cloud c1"></i><i class="cloud c2"></i><i class="sun"></i></div>
+        <div class="frame"></div>
+      </div>
+
+      <svg class="clock" viewBox="0 0 40 40" shape-rendering="geometricPrecision" aria-hidden="true">
+        <circle cx="20" cy="20" r="18" fill="#f4f1e8" stroke="#2f2f3f" stroke-width="3"/>
+        <circle cx="20" cy="20" r="1.6" fill="#2f2f3f"/>
+        <line id="clock-h" x1="20" y1="20" x2="20" y2="11" stroke="#2f2f3f" stroke-width="2.6" stroke-linecap="round"/>
+        <line id="clock-m" x1="20" y1="20" x2="20" y2="7"  stroke="#2f2f3f" stroke-width="1.8" stroke-linecap="round"/>
+      </svg>
+
+      <div class="sign" id="sign">ESCRITÓRIO</div>
+      <div class="baseboard"></div>
+    </div>
+
+    <svg class="floor parallax" id="floor" viewBox="0 0 960 390" preserveAspectRatio="none" aria-hidden="true">
+      <defs>
+        <pattern id="tiles" width="64" height="32" patternUnits="userSpaceOnUse">
+          <rect width="64" height="32" fill="#8b6f4e"/>
+          <polygon points="32,0 64,16 32,32 0,16" fill="#a88a63"/>
+        </pattern>
+      </defs>
+      <rect width="100%" height="100%" fill="url(#tiles)"/>
+    </svg>
+
+    <div class="props" id="props"></div>
+    <div class="stations" id="stations"></div>
+  </div>
+</main>
+
+<footer class="ticker">
+  <span class="ticker-label">últimas atividades</span>
+  <ul id="ticker-list" class="ticker-list"><li class="empty">aguardando o primeiro POST…</li></ul>
+  <button type="button" class="panel-toggle" id="panel-toggle" title="Painel de testes (tecla D)">D</button>
+</footer>
+
+<aside class="panel" id="panel" hidden aria-label="Painel de testes">
+  <header>
+    <strong>Painel de testes</strong>
+    <button type="button" id="panel-close" aria-label="Fechar">×</button>
+  </header>
+  <p class="hint">Clique dispara <code>POST /api/activity</code>. <b>Shift+clique</b> tira o agente da sala.</p>
+  <label class="field">
+    <span>Atividade</span>
+    <input id="panel-activity" type="text" maxlength="140" placeholder="Realizando leitura" value="Realizando leitura">
+  </label>
+  <label class="field">
+    <span>Nome (opcional)</span>
+    <input id="panel-name" type="text" maxlength="24" placeholder="deixe vazio para manter">
+  </label>
+  <div class="agent-grid" id="panel-agents"></div>
+  <div class="panel-actions">
+    <button type="button" id="panel-random">Sortear em todos</button>
+    <button type="button" id="panel-clear">Limpar balões</button>
+  </div>
+  <pre class="curl" id="panel-curl"></pre>
+  <p class="panel-log" id="panel-log"></p>
+</aside>
+
+<script type="module" src="/js/app.js"></script>
+</body>
+</html>

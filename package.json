@@ -1,0 +1,19 @@
+{
+  "name": "habbo-office",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Cena pixel art estilo Habbo com 6 agentes que exibem baloes de fala a partir de um POST",
+  "main": "server/index.js",
+  "scripts": {
+    "start": "node server/index.js",
+    "dev": "node --watch server/index.js",
+    "test": "node --test \"test/*.test.js\""
+  },
+  "engines": {
+    "node": ">=20.6"
+  },
+  "dependencies": {
+    "express": "^4.19.2"
+  }
+}
