@@ -34,9 +34,10 @@ jobs:
   deploy:
     needs: testes
     runs-on: ubuntu-latest
-    environment:
-      name: producao
-      url: https://habbo-agents.azurewebsites.net
+    # Sem `environment:` de proposito. Com ele, o subject do token OIDC vira
+    # `...:environment:producao` e qualquer branch que aponte para esse
+    # environment consegue assumir a identidade. Com o subject preso em
+    # `ref:refs/heads/main`, so a main consegue.
     steps:
       - uses: actions/checkout@v7
 

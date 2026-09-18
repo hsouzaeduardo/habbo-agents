@@ -269,6 +269,13 @@ commit → espera `/health` responder 200.
 
 A autenticação é por **OIDC/identidade federada**: nenhum segredo do Azure fica
 no repositório, e só o push na `main` deste repo consegue assumir a identidade.
+
+O subject que o GitHub apresenta hoje inclui os ids numéricos do dono e do repo
+(`repo:hsouzaeduardo@1692867/habbo-agents@1375685277:ref:refs/heads/main`), e a
+credencial federada no Entra tem que bater com ele exatamente. O job também não
+declara `environment:` — com ele o subject vira `...:environment:<nome>` e
+qualquer branch que aponte para aquele environment consegue assumir a
+identidade.
 Falta um passo manual — adicionar três identificadores em
 *Settings → Secrets and variables → Actions*:
 
