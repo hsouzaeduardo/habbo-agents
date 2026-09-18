@@ -1,0 +1,76 @@
+name: Deploy para o Azure
+
+# Todo push na main roda os testes, constroi a imagem no ACR e aponta o Web App
+# para a nova tag. A autenticacao e por OIDC (identidade federada): nao existe
+# segredo do Azure guardado no repositorio.
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  id-token: write # necessario para o OIDC
+  contents: read
+
+env:
+  RESOURCE_GROUP: rg-habbo-agents
+  WEBAPP: habbo-agents
+  REGISTRY: acrhabboagentsf7lr3
+  IMAGE: habbo-office
+
+jobs:
+  testes:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm test
+
+  deploy:
+    needs: testes
+    runs-on: ubuntu-latest
+    environment:
+      name: producao
+      url: https://habbo-agents.azurewebsites.net
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Login no Azure (OIDC)
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      # o build acontece dentro do ACR: nao precisa de docker nem de push daqui
+      - name: Construir a imagem no ACR
+        run: |
+          az acr build \
+            --registry "$REGISTRY" \
+            --image "$IMAGE:${{ github.sha }}" \
+            --image "$IMAGE:latest" \
+            .
+
+      - name: Apontar o Web App para a nova imagem
+        run: |
+          az webapp config container set \
+            --resource-group "$RESOURCE_GROUP" \
+            --name "$WEBAPP" \
+            --container-image-name "$REGISTRY.azurecr.io/$IMAGE:${{ github.sha }}"
+
+      - name: Aguardar o app responder
+        run: |
+          for i in $(seq 1 20); do
+            code=$(curl -s -o /dev/null -w "%{http_code}" --max-time 20 \
+              "https://$WEBAPP.azurewebsites.net/health" || echo 000)
+            echo "tentativa $i: HTTP $code"
+            [ "$code" = "200" ] && exit 0
+            sleep 15
+          done
+          echo "o app nao respondeu 200 em /health depois do deploy"
+          exit 1

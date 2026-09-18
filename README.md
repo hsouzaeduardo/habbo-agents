@@ -205,6 +205,100 @@ Em `server/agents.config.js`:
 Os desenhos são mapas de caracteres em `public/js/sprites.js` — cada letra é uma
 cor da paleta. Não existe imagem externa: a cena inteira roda offline.
 
+## Deploy (Azure App Service)
+
+No ar em **https://habbo-agents.azurewebsites.net** — container Linux no App
+Service, imagem hospedada no Azure Container Registry.
+
+### O que existe na assinatura
+
+| Recurso | Nome | Observação |
+|---|---|---|
+| Resource group | `rg-habbo-agents` | tudo vive aqui |
+| Container registry | `acrhabboagentsf7lr3` | SKU Basic |
+| Plano | `asp-habbo-agents` | B1 Linux, **Central US** |
+| Web App | `habbo-agents` | 1 instância, Always On, health check em `/health` |
+
+A região é Central US porque a assinatura Sponsorship está com **cota 0 de B1 em
+Brazil South** (e em East US / East US 2). Para trazer para o Brasil é preciso
+abrir um pedido de aumento de cota.
+
+**Uma instância só, de propósito**: o estado dos agentes vive em memória e o SSE
+é uma conexão longa. Escalar horizontalmente faria um POST cair numa instância e
+o navegador estar ouvindo outra. Se um dia precisar escalar, o estado tem que
+sair para um Redis primeiro.
+
+### Autenticação
+
+O app inteiro está atrás do **Easy Auth com Entra ID** — sem login não se vê nem
+a página nem a API. Só `/health` fica fora, porque o health check do próprio
+App Service não faz login e um 302 marcaria a instância como doente.
+
+- **No navegador**: abre, cai no login do Entra, volta logado.
+- **Na automação (n8n)**: precisa de um token de aplicação. Crie um segredo para
+  isso (o comando mostra o valor uma única vez):
+
+  ```bash
+  az ad app credential reset --id de8a7b27-5c4b-4f9d-9017-ffcf61d2390d     --append --display-name n8n --years 1
+  ```
+
+  E no n8n use *Generic Credential Type → OAuth2 (client credentials)*:
+
+  | Campo | Valor |
+  |---|---|
+  | Access Token URL | `https://login.microsoftonline.com/7247031b-59eb-41cb-b463-ac1db7d5a4d0/oauth2/v2.0/token` |
+  | Client ID | `de8a7b27-5c4b-4f9d-9017-ffcf61d2390d` |
+  | Client Secret | o valor gerado acima |
+  | Scope | `api://de8a7b27-5c4b-4f9d-9017-ffcf61d2390d/.default` |
+
+Além do token, as rotas de escrita continuam pedindo o header `x-api-key` (o
+Easy Auth pode ser desligado no portal por engano; a chave é a segunda tranca).
+Para ver a chave:
+
+```bash
+az webapp config appsettings list -g rg-habbo-agents -n habbo-agents   --query "[?name=='API_KEY'].value" -o tsv
+```
+
+Se preferir só o Entra ID, apague a variável `API_KEY` do App Service.
+
+### Deploy contínuo
+
+`.github/workflows/deploy.yml` roda a cada push na `main`: testes → `az acr
+build` (a imagem é construída dentro do Azure) → aponta o Web App para a tag do
+commit → espera `/health` responder 200.
+
+A autenticação é por **OIDC/identidade federada**: nenhum segredo do Azure fica
+no repositório, e só o push na `main` deste repo consegue assumir a identidade.
+Falta um passo manual — adicionar três identificadores em
+*Settings → Secrets and variables → Actions*:
+
+| Secret | Valor |
+|---|---|
+| `AZURE_CLIENT_ID` | `5d54193a-c767-48df-b7ac-aefca85604b6` |
+| `AZURE_TENANT_ID` | `7247031b-59eb-41cb-b463-ac1db7d5a4d0` |
+| `AZURE_SUBSCRIPTION_ID` | `c9271149-e7f1-46e1-98cb-80647d023319` |
+
+Enquanto eles não existirem, o job de deploy falha no login (os testes passam).
+
+### Custo
+
+B1 (~US$13/mês) + ACR Basic (~US$5/mês) ≈ **US$18/mês** no crédito da
+assinatura Sponsorship. Para pausar sem apagar nada:
+
+```bash
+az webapp stop -g rg-habbo-agents -n habbo-agents
+```
+
+O plano continua sendo cobrado mesmo com o app parado; para zerar de vez,
+`az group delete -n rg-habbo-agents`.
+
+### Rodar o container local
+
+```bash
+docker build -t habbo-office .
+docker run --rm -p 3000:3000 habbo-office
+```
+
 ## Estrutura
 
 ```
