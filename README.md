@@ -287,6 +287,14 @@ Falta um passo manual — adicionar três identificadores em
 
 Enquanto eles não existirem, o job de deploy falha no login (os testes passam).
 
+Papéis da identidade de CI, todos no escopo mais estreito que dá:
+
+| Papel | Escopo | Para quê |
+|---|---|---|
+| `Contributor` | só o registry `acrhabboagentsf7lr3` | `az acr build` precisa de `scheduleRun`, que o `AcrPush` não tem |
+| `AcrPush` | só o registry | push da imagem |
+| `Website Contributor` | o grupo `rg-habbo-agents` | trocar a imagem do Web App |
+
 ### Custo
 
 B1 (~US$13/mês) + ACR Basic (~US$5/mês) ≈ **US$18/mês** no crédito da
